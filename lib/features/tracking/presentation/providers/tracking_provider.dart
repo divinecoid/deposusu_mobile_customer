@@ -17,6 +17,7 @@ class TrackingProvider extends ChangeNotifier {
 
   Timer? _trackingTimer;
   String? _activeTrackingNumber;
+  String? get activeTrackingNumber => _activeTrackingNumber;
 
   @override
   void dispose() {
@@ -71,7 +72,7 @@ class TrackingProvider extends ChangeNotifier {
       final response = await http.get(
         Uri.parse('${AppConstants.baseUrl}/orders/track/$orderNumber'),
         headers: {'Accept': 'application/json'},
-      );
+      ).timeout(const Duration(seconds: 3));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);

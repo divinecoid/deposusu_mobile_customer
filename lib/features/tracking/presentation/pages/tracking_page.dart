@@ -17,9 +17,11 @@ class _TrackingPageState extends State<TrackingPage> {
   @override
   void initState() {
     super.initState();
-    // Initialize mock data on startup as a fallback/showcase
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TrackingProvider>().initializeMockOrder();
+      final provider = context.read<TrackingProvider>();
+      if (provider.activeTrackingNumber == null) {
+        provider.initializeMockOrder();
+      }
     });
   }
 
