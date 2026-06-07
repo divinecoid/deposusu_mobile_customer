@@ -148,8 +148,8 @@ class _PinPageState extends State<PinPage> {
     }
   }
 
-  void _showBiometricPrompt(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _showBiometricPrompt(BuildContext context) async {
+    await showModalBottomSheet(
       context: context,
       isDismissible: false,
       enableDrag: false,
@@ -157,7 +157,7 @@ class _PinPageState extends State<PinPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
+      builder: (ctx) {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -186,8 +186,8 @@ class _PinPageState extends State<PinPage> {
                       final biometricService = BiometricService();
                       final canUse = await biometricService.canUseBiometrics();
                       if (!canUse) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
+                        if (ctx.mounted) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
                             const SnackBar(content: Text('Sistem HP belum mendukung atau Fingerprint belum didaftarkan.')),
                           );
                         }
@@ -196,9 +196,8 @@ class _PinPageState extends State<PinPage> {
 
                       final prefs = await SharedPreferences.getInstance();
                       await prefs.setBool('has_biometric', true);
-                      if (context.mounted) {
-                        Navigator.pop(context); // close modal
-                        Navigator.pop(context, true); // return to security settings page
+                      if (ctx.mounted) {
+                        Navigator.pop(ctx); // close modal
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -213,8 +212,7 @@ class _PinPageState extends State<PinPage> {
                   height: 50,
                   child: TextButton(
                     onPressed: () {
-                      Navigator.pop(context); // close modal
-                      Navigator.pop(context, true); // return to security settings page
+                      Navigator.pop(ctx); // close modal
                     },
                     child: const Text('Nanti', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
                   ),
@@ -225,6 +223,11 @@ class _PinPageState extends State<PinPage> {
         );
       },
     );
+
+    // After modal closes, pop the PinPage returning true
+    if (mounted) {
+      Navigator.pop(context, true);
+    }
   }
 
   String get _title {
