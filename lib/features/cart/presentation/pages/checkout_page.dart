@@ -11,6 +11,9 @@ import '../../../account/presentation/pages/add_address_page.dart';
 import '../../../../features/payment/presentation/pages/payment_gateway_page.dart';
 import '../../../tracking/presentation/pages/tracking_page.dart';
 import '../../../tracking/presentation/providers/tracking_provider.dart';
+import '../../../../core/providers/order_history_provider.dart';
+import '../../../tracking/data/models/order_tracking_model.dart';
+import '../../../orders/presentation/pages/order_history_page.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -198,7 +201,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           'items': checkoutItems,
           'payment_method': _selectedPaymentMethod,
         }),
-      ).timeout(const Duration(seconds: 5));
+      ).timeout(const Duration(seconds: 15));
 
       // Close loading dialog
       if (mounted) {
@@ -225,10 +228,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   : _getPaymentMethodLabel(_selectedPaymentMethod!);
 
           if (_selectedPaymentMethod == 'SALDO' || _selectedPaymentMethod == 'COD') {
+            final paymentStatus = _selectedPaymentMethod == 'COD' ? 'PAY_ON_DELIVERY' : 'PAID';
+            _addOrderToHistory(orderNum, _selectedPaymentMethod!, paymentStatus, total);
+            
             _showCheckoutSuccessPage(
               orderNumber: orderNum,
               paymentMethodLabel: methodLabel,
-              paymentStatus: _selectedPaymentMethod == 'COD' ? 'PAY_ON_DELIVERY' : 'PAID',
+              paymentStatus: paymentStatus,
               amount: total,
             );
           } else {
@@ -243,6 +249,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   amount: total,
                   orderId: orderNum,
                   onPaymentSuccess: (orderId) {
+                    _addOrderToHistory(orderId, _selectedPaymentMethod!, 'PAID', total);
                     _showCheckoutSuccessPage(
                       orderNumber: orderId,
                       paymentMethodLabel: methodLabel,
@@ -251,6 +258,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     );
                   },
                   onPaymentFailed: (orderId) {
+                    _addOrderToHistory(orderId, _selectedPaymentMethod!, 'PENDING', total);
                     _showCheckoutSuccessPage(
                       orderNumber: orderId,
                       paymentMethodLabel: methodLabel,
@@ -307,6 +315,28 @@ class _CheckoutPageState extends State<CheckoutPage> {
       case 'QRIS': return 'QRIS';
       default: return 'Pembayaran Digital';
     }
+  }
+
+  void _addOrderToHistory(String orderNumber, String paymentMethod, String paymentStatus, int total) {
+    if (!mounted) return;
+    
+    final status = OrderStatus.pending;
+
+    final order = OrderTrackingModel(
+      orderNumber: orderNumber,
+      currentStatus: status,
+      estimatedDeliveryTime: DateTime.now().add(const Duration(hours: 1)),
+      paymentMethod: paymentMethod,
+      paymentStatus: paymentStatus,
+      history: [
+        TrackingHistoryItem(
+          status: status,
+          timestamp: DateTime.now(),
+        ),
+      ],
+    );
+    
+    context.read<OrderHistoryProvider>().addOrder(order);
   }
 
   void _showCheckoutSuccessPage({
@@ -719,19 +749,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ],
               ),
             ),
-            SizedBox(
-              width: 160,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () => _handlePlaceOrder(cart, auth, address),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  'Buat Pesanan',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+            const SizedBox(width: 16),
+            Expanded(
+              child: SizedBox(
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () => _handlePlaceOrder(cart, auth, address),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Buat Pesanan',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                  ),
                 ),
               ),
             ),
@@ -793,7 +825,7 @@ class _CheckoutSuccessScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 isPaid 
-                    ? 'Pesanan Anda telah diterima dan langsung masuk ke dashboard persiapan Toko!' 
+                    ? 'Pesanan Anda sedang diproses.' 
                     : 'Pesanan Anda terbuat! Segera selesaikan pembayaran agar pesanan dapat diproses.',
                 style: const TextStyle(color: Colors.grey, fontSize: 14),
                 textAlign: TextAlign.center,
@@ -834,12 +866,10 @@ class _CheckoutSuccessScreen extends StatelessWidget {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Start tracking this real order number!
-                    context.read<TrackingProvider>().startTrackingRealOrder(orderNumber);
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const TrackingPage(),
+                        builder: (context) => const OrderHistoryPage(initialIndex: 0),
                       ),
                     );
                   },
@@ -848,15 +878,20 @@ class _CheckoutSuccessScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
-                  child: const Text('Lacak Status Pengiriman', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  child: const Text('Lihat Pesanan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                 ),
               ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Back to Home screen
-                },
-                child: Text('Kembali ke Beranda', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              // Kembali ke beranda
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  child: Text('Kembali ke Beranda', style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
               ),
             ],
           ),

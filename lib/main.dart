@@ -9,11 +9,18 @@ import 'core/providers/theme_provider.dart';
 import 'core/providers/address_provider.dart';
 import 'core/providers/cart_provider.dart';
 import 'core/providers/product_provider.dart';
+import 'core/providers/order_history_provider.dart';
 import 'core/providers/auth_provider.dart';
+import 'package:flutter/services.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((_) {
+    runApp(
+      MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => TrackingProvider()),
@@ -22,10 +29,12 @@ void main() {
         ChangeNotifierProvider(create: (_) => AddressProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
+        ChangeNotifierProvider(create: (_) => OrderHistoryProvider()),
       ],
       child: const MyApp(),
     ),
   );
+  });
 }
 
 class MyApp extends StatelessWidget {

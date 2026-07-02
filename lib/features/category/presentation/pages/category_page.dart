@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/cart_provider.dart';
 import '../../../../core/providers/product_provider.dart';
+import '../../../cart/presentation/pages/checkout_page.dart';
 
 class CategoryPage extends StatefulWidget {
   final String initialCategory;
@@ -22,16 +23,16 @@ class _CategoryPageState extends State<CategoryPage> {
   final TextEditingController _searchController = TextEditingController();
 
   final List<Map<String, String>> categories = [
+    {'key': 'semua', 'label': 'Semua', 'icon': '🔍'},
     {'key': 'buah', 'label': 'Buah', 'icon': '🍎'},
     {'key': 'protein', 'label': 'Protein', 'icon': '🍗'},
     {'key': 'siap_saji', 'label': 'Siap Saji', 'icon': '🍱'},
-    {'key': 'makanan_ringan', 'label': 'Cemilan', 'icon': '🍪'},
-    {'key': 'sembako', 'label': 'Sembako', 'icon': '🛒'},
-    {'key': 'susu', 'label': 'Susu', 'icon': '🥛'},
+    {'key': 'sayur', 'label': 'Sayur', 'icon': '🥬'},
+    {'key': 'susu', 'label': 'Susu & Dairy', 'icon': '🥛'},
+    {'key': 'frozen_food', 'label': 'Frozen Food', 'icon': '❄️'},
     {'key': 'minuman_ringan', 'label': 'Minuman', 'icon': '🥤'},
-    {'key': 'perawatan_rumah', 'label': 'Rumah', 'icon': '🧼'},
-    {'key': 'bumbu_saus', 'label': 'Bumbu', 'icon': '🧂'},
-    {'key': 'perawatan_diri', 'label': 'Perawatan Diri', 'icon': '🧴'},
+    {'key': 'makanan_ringan', 'label': 'Snack', 'icon': '🍪'},
+    {'key': 'bumbu_saus', 'label': 'Bumbu Dapur', 'icon': '🧂'},
   ];
 
   @override
@@ -95,7 +96,7 @@ class _CategoryPageState extends State<CategoryPage> {
                               });
                             },
                             decoration: const InputDecoration(
-                              hintText: 'Cari di kategori ini...',
+                              hintText: 'Cari produk...',
                               hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                               prefixIcon: Icon(Icons.search, color: Colors.grey, size: 20),
                               border: InputBorder.none,
@@ -181,7 +182,10 @@ class _CategoryPageState extends State<CategoryPage> {
                 bottom: 24,
                 child: GestureDetector(
                   onTap: () {
-                    Navigator.pop(context); // Go back to view cart on home
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CheckoutPage()),
+                    );
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

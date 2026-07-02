@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/providers/auth_provider.dart';
+import '../widgets/otp_verification_dialog.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -12,6 +15,41 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
+
+  late TextEditingController _nameController;
+  late TextEditingController _phoneController;
+  late TextEditingController _emailController;
+
+  String _initialPhone = '';
+  String _initialEmail = '';
+
+  @override
+  void initState() {
+    super.initState();
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.user;
+
+    final initialName = user?['name'] ?? '';
+    _initialPhone = user?['phone'] ?? '';
+    _initialEmail = user?['email'] ?? '';
+    final initialPhoto = user?['photo'];
+
+    _nameController = TextEditingController(text: initialName);
+    _phoneController = TextEditingController(text: _initialPhone);
+    _emailController = TextEditingController(text: _initialEmail);
+
+    if (initialPhoto != null && initialPhoto.isNotEmpty) {
+      _profileImage = File(initialPhoto);
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -66,6 +104,73 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
+  Future<void> _handleSave() async {
+    final authProvider = context.read<AuthProvider>();
+
+    final newName = _nameController.text.trim();
+    final newPhone = _phoneController.text.trim();
+    final newEmail = _emailController.text.trim();
+    final newPhotoPath = _profileImage?.path;
+
+    // 1. Instantly update name and photo
+    await authProvider.updateBasicProfile(newName, newPhotoPath);
+
+    bool needPhoneOtp = newPhone != _initialPhone && newPhone.isNotEmpty;
+    bool needEmailOtp = newEmail != _initialEmail && newEmail.isNotEmpty;
+
+    if (!needPhoneOtp && !needEmailOtp) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profil berhasil diperbarui'), backgroundColor: Colors.green),
+      );
+      Navigator.pop(context);
+      return;
+    }
+
+    // 2. Request OTP for Phone if changed
+    if (needPhoneOtp) {
+      await authProvider.requestOtp('phone', newPhone);
+      final success = await _showOtpDialog('phone', newPhone);
+      if (success == true) {
+        _initialPhone = newPhone;
+      } else {
+        // Revert controller if failed/cancelled
+        _phoneController.text = _initialPhone;
+      }
+    }
+
+    // 3. Request OTP for Email if changed
+    if (needEmailOtp) {
+      await authProvider.requestOtp('email', newEmail);
+      final success = await _showOtpDialog('email', newEmail);
+      if (success == true) {
+        _initialEmail = newEmail;
+      } else {
+        // Revert controller if failed/cancelled
+        _emailController.text = _initialEmail;
+      }
+    }
+
+    // If both succeeded, or if one succeeded and the other wasn't needed, we can pop if we want, or just let user see it updated.
+    // We'll pop if everything is synced to initial
+    if (_phoneController.text == _initialPhone && _emailController.text == _initialEmail) {
+      Navigator.pop(context);
+    }
+  }
+
+  Future<bool?> _showOtpDialog(String type, String newValue) async {
+    return showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return OtpVerificationDialog(
+          updateType: type,
+          newValue: newValue,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,24 +217,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
             ),
             const SizedBox(height: 32),
-            _buildTextField('Nama Lengkap', 'Felinika', false),
+            _buildTextField('Nama Lengkap', _nameController, false),
             const SizedBox(height: 16),
-            _buildTextField('Nomor Handphone', '08123456789', false, keyboardType: TextInputType.phone),
+            _buildTextField('Nomor Handphone', _phoneController, false, keyboardType: TextInputType.phone),
             const SizedBox(height: 16),
-            _buildTextField('Email', 'felinika@example.com', false, keyboardType: TextInputType.emailAddress),
+            _buildTextField('Email', _emailController, false, keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+                onPressed: _handleSave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).primaryColor,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Simpan Perubahan', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text('Simpan Perubahan', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
           ],
@@ -138,7 +241,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildTextField(String label, String placeholder, bool obscure, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(String label, TextEditingController controller, bool obscure, {TextInputType keyboardType = TextInputType.text}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -147,7 +250,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         TextField(
           obscureText: obscure,
           keyboardType: keyboardType,
-          controller: TextEditingController(text: placeholder),
+          controller: controller,
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),

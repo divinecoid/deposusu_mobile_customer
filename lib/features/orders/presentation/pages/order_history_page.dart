@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/providers/order_history_provider.dart';
+import '../../../tracking/data/models/order_tracking_model.dart';
+import '../../../tracking/presentation/widgets/tracking_stepper.dart';
 
 class OrderHistoryPage extends StatefulWidget {
   final int initialIndex;
@@ -42,11 +47,12 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> with SingleTickerPr
             unselectedLabelColor: Colors.grey,
             indicatorColor: Theme.of(context).primaryColor,
             indicatorWeight: 3,
+            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
             labelStyle: const TextStyle(fontWeight: FontWeight.bold),
             tabs: const [
-              Tab(text: 'Semua'),
-              Tab(text: 'Selesai'),
-              Tab(text: 'Dibatalkan'),
+              Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('Semua', textAlign: TextAlign.center))),
+              Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('Selesai', textAlign: TextAlign.center))),
+              Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('Dibatalkan', textAlign: TextAlign.center))),
             ],
           ),
         ),
@@ -95,20 +101,16 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> with SingleTickerPr
     });
   }
 
-  Widget _buildOrderCard({
-    required String orderId,
-    required String date,
-    required String itemCount,
-    required String total,
-    required String status,
-    required Color statusColor,
-  }) {
+  Widget _buildOrderCard(OrderTrackingModel order) {
+    final dateFormat = DateFormat('dd MMM yyyy HH:mm');
+    final date = order.history.isNotEmpty ? dateFormat.format(order.history.first.timestamp) : 'Baru Saja';
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
@@ -124,33 +126,26 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> with SingleTickerPr
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(orderId, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(order.orderNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               Text(date, style: const TextStyle(color: Colors.grey, fontSize: 14)),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(itemCount, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
-          const SizedBox(height: 4),
-          Text('Total $total', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, fontSize: 14)),
+          const SizedBox(height: 16),
+          // Embedded TrackingStepper instead of simple dot
+          TrackingStepper(
+            currentStatus: order.currentStatus,
+            paymentMethod: order.paymentMethod,
+            paymentStatus: order.paymentStatus,
+          ),
           const SizedBox(height: 12),
           const Divider(),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(status, style: TextStyle(fontWeight: FontWeight.bold, color: statusColor)),
-                ],
+              Text(
+                order.paymentMethod == 'COD' ? 'Bayar Saat Diterima' : (order.paymentMethod ?? 'Pembayaran Digital'), 
+                style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)
               ),
               ElevatedButton(
                 onPressed: _onPesanLagiClicked,
@@ -158,6 +153,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> with SingleTickerPr
                   backgroundColor: Theme.of(context).primaryColor,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  elevation: 0,
                 ),
                 child: const Text('Pesan Lagi', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
@@ -169,74 +165,56 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> with SingleTickerPr
   }
 
   Widget _buildSemuaTab() {
-    return ListView(
-      padding: const EdgeInsets.only(top: 8, bottom: 24),
-      children: [
-        _buildOrderCard(
-          orderId: '#DS2026001',
-          date: '15 Mei 2026',
-          itemCount: '3 Produk',
-          total: 'Rp125.000',
-          status: 'Selesai',
-          statusColor: Colors.green,
-        ),
-        _buildOrderCard(
-          orderId: '#DS2026002',
-          date: '16 Mei 2026',
-          itemCount: '2 Produk',
-          total: 'Rp85.000',
-          status: 'Dibatalkan',
-          statusColor: Colors.grey.shade600,
-        ),
-        _buildOrderCard(
-          orderId: '#DS2026003',
-          date: '20 Mei 2026',
-          itemCount: '5 Produk',
-          total: 'Rp210.000',
-          status: 'Selesai',
-          statusColor: Colors.green,
-        ),
-      ],
+    final provider = context.watch<OrderHistoryProvider>();
+    if (provider.orders.isEmpty) {
+      return _buildEmptyState('Belum ada pesanan');
+    }
+    
+    return ListView.builder(
+      itemCount: provider.orders.length,
+      itemBuilder: (context, index) {
+        return _buildOrderCard(provider.orders[index]);
+      },
     );
   }
 
   Widget _buildSelesaiTab() {
-    return ListView(
-      padding: const EdgeInsets.only(top: 8, bottom: 24),
-      children: [
-        _buildOrderCard(
-          orderId: '#DS2026001',
-          date: '15 Mei 2026',
-          itemCount: '3 Produk',
-          total: 'Rp125.000',
-          status: 'Selesai',
-          statusColor: Colors.green,
-        ),
-        _buildOrderCard(
-          orderId: '#DS2026003',
-          date: '20 Mei 2026',
-          itemCount: '5 Produk',
-          total: 'Rp210.000',
-          status: 'Selesai',
-          statusColor: Colors.green,
-        ),
-      ],
+    final provider = context.watch<OrderHistoryProvider>();
+    final completed = provider.orders.where((o) => o.currentStatus == OrderStatus.completed).toList();
+    
+    if (completed.isEmpty) {
+      return _buildEmptyState('Belum ada pesanan selesai');
+    }
+    
+    return ListView.builder(
+      itemCount: completed.length,
+      itemBuilder: (context, index) {
+        return _buildOrderCard(completed[index]);
+      },
     );
   }
 
   Widget _buildDibatalkanTab() {
-    return ListView(
-      padding: const EdgeInsets.only(top: 8, bottom: 24),
-      children: [
-        _buildOrderCard(
-          orderId: '#DS2026002',
-          date: '16 Mei 2026',
-          itemCount: '2 Produk',
-          total: 'Rp85.000',
-          status: 'Dibatalkan',
-          statusColor: Colors.grey.shade600,
-        ),
-      ],
+    return _buildEmptyState('Belum ada pesanan dibatalkan');
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.inbox, size: 64, color: Colors.grey.shade400),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

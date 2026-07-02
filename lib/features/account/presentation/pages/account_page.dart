@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/providers/auth_provider.dart';
+import 'dart:io';
 import '../../../../core/providers/language_provider.dart';
 import 'edit_profile_page.dart';
 import 'notification_settings_page.dart';
@@ -32,25 +34,35 @@ class AccountPage extends StatelessWidget {
           Container(
             color: Theme.of(context).cardColor,
             padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Theme.of(context).primaryColor.withAlpha(30),
-                  child: Icon(Icons.person, size: 40, color: Theme.of(context).primaryColor),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Felinika', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                      SizedBox(height: 4),
-                      Text('08123456789', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                    ],
-                  ),
-                ),
-              ],
+            child: Consumer<AuthProvider>(
+              builder: (context, auth, child) {
+                final user = auth.user;
+                final name = user?['name'] ?? 'Felinika';
+                final phone = user?['phone'] ?? '08123456789';
+                final photoPath = user?['photo'];
+
+                return Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Theme.of(context).primaryColor.withAlpha(30),
+                      backgroundImage: photoPath != null ? FileImage(File(photoPath)) : null,
+                      child: photoPath == null ? Icon(Icons.person, size: 40, color: Theme.of(context).primaryColor) : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                          SizedBox(height: 4),
+                          Text(phone, style: TextStyle(color: Colors.grey, fontSize: 14)),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
           const SizedBox(height: 8),
@@ -90,23 +102,15 @@ class AccountPage extends StatelessWidget {
           // Pesanan Saya Section
           Container(
             color: Theme.of(context).cardColor,
-            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(lang.t('menu_my_orders'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface)),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildOrderIcon(context, Icons.payment, 'status_pending', 0),
-                    _buildOrderIcon(context, Icons.inventory_2_outlined, 'status_processing', 1),
-                    _buildOrderIcon(context, Icons.local_shipping_outlined, 'status_shipped', 2),
-                    _buildOrderIcon(context, Icons.check_circle_outline, 'status_completed', 3),
-                  ],
+                ListTile(
+                  leading: Icon(Icons.inventory_2_outlined, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
+                  title: Text(lang.t('menu_my_orders')),
+                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderHistoryPage(initialIndex: 0)));
+                  },
                 ),
               ],
             ),
@@ -264,32 +268,6 @@ class AccountPage extends StatelessWidget {
               elevation: 0,
             ),
             child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderIcon(BuildContext context, IconData icon, String labelKey, int tabIndex) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => OrderHistoryPage(initialIndex: tabIndex)),
-        );
-      },
-      child: Column(
-        children: [
-          Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 28),
-          const SizedBox(height: 8),
-          Consumer<LanguageProvider>(
-            builder: (context, lang, child) {
-              return Text(
-                lang.t(labelKey).replaceAll(' ', '\n'),
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
-              );
-            },
           ),
         ],
       ),

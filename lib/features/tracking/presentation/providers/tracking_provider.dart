@@ -34,6 +34,8 @@ class TrackingProvider extends ChangeNotifier {
       orderNumber: 'TRX-101 (Simulasi)',
       currentStatus: OrderStatus.pending,
       estimatedDeliveryTime: DateTime.now().add(const Duration(hours: 1)),
+      paymentMethod: 'GOPAY', // Mock payment method
+      paymentStatus: 'PENDING', // Mock payment status
       history: [
         TrackingHistoryItem(
           status: OrderStatus.pending,
@@ -81,15 +83,17 @@ class TrackingProvider extends ChangeNotifier {
           final String statusStr = data['status'];
           final String orderNum = data['order_number'];
           final String createdAtStr = data['created_at'];
+          final String paymentMethodStr = data['payment_method'] ?? 'UNKNOWN';
+          final String paymentStatusStr = data['payment_status'] ?? 'PENDING';
           final DateTime createdAt = DateTime.tryParse(createdAtStr) ?? DateTime.now();
 
           // Map database status string to OrderStatus enum
           OrderStatus currentStatus = OrderStatus.pending;
           if (statusStr == 'prepared') {
             currentStatus = OrderStatus.prepared;
-          } else if (statusStr == 'ondelivery') {
+          } else if (statusStr == 'delivering') {
             currentStatus = OrderStatus.delivering;
-          } else if (statusStr == 'delivered' || statusStr == 'done') {
+          } else if (statusStr == 'completed' || statusStr == 'done') {
             currentStatus = OrderStatus.completed;
           }
 
@@ -130,6 +134,8 @@ class TrackingProvider extends ChangeNotifier {
             orderNumber: orderNum,
             currentStatus: currentStatus,
             estimatedDeliveryTime: createdAt.add(const Duration(hours: 1)),
+            paymentMethod: paymentMethodStr,
+            paymentStatus: paymentStatusStr,
             history: history,
           );
           _errorMessage = null;
@@ -173,6 +179,8 @@ class TrackingProvider extends ChangeNotifier {
         orderNumber: _currentOrder!.orderNumber,
         currentStatus: nextStatus,
         estimatedDeliveryTime: _currentOrder!.estimatedDeliveryTime,
+        paymentMethod: _currentOrder!.paymentMethod,
+        paymentStatus: 'PAID', // Simulate paid when status advances
         history: updatedHistory,
       );
       notifyListeners();

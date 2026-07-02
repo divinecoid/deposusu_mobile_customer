@@ -38,22 +38,22 @@ class _TrackingPageState extends State<TrackingPage> {
     final isMock = order?.orderNumber.contains('Simulasi') ?? true;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Premium Dark Slate Navy
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Premium Dark Slate Navy
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: Theme.of(context).cardColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Lacak Pesanan Deposusu',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             letterSpacing: 0.5,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         actions: [
           if (order != null && !isMock)
             IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.cyan),
+              icon: Icon(Icons.refresh, color: Colors.cyan),
               onPressed: () {
                 provider.fetchOrderTracking(order.orderNumber);
               },
@@ -69,7 +69,7 @@ class _TrackingPageState extends State<TrackingPage> {
           }
         },
         color: Colors.cyan,
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: Theme.of(context).cardColor,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
@@ -83,15 +83,15 @@ class _TrackingPageState extends State<TrackingPage> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      const Color(0xFF1E293B).withValues(alpha: 0.8),
-                      const Color(0xFF0F172A).withValues(alpha: 0.8),
+                      Theme.of(context).cardColor.withValues(alpha: 0.8),
+                      Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -104,10 +104,10 @@ class _TrackingPageState extends State<TrackingPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Masukkan Nomor Pesanan / Invoice',
                       style: TextStyle(
-                        color: Color(0xFF94A3B8),
+                        color: Colors.grey,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -118,13 +118,13 @@ class _TrackingPageState extends State<TrackingPage> {
                         Expanded(
                           child: TextField(
                             controller: _searchController,
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                             decoration: InputDecoration(
                               hintText: 'Contoh: INV-20260529-00001',
-                              hintStyle: const TextStyle(color: Color(0xFF64748B)),
-                              prefixIcon: const Icon(Icons.receipt_long, color: Colors.cyan),
+                              hintStyle: TextStyle(color: Colors.grey),
+                              prefixIcon: Icon(Icons.receipt_long, color: Colors.cyan),
                               filled: true,
-                              fillColor: const Color(0xFF0F172A).withValues(alpha: 0.6),
+                              fillColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.6),
                               contentPadding: const EdgeInsets.symmetric(vertical: 14),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -133,7 +133,7 @@ class _TrackingPageState extends State<TrackingPage> {
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
                                 borderSide: BorderSide(
-                                  color: Colors.white.withValues(alpha: 0.05),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
@@ -163,7 +163,7 @@ class _TrackingPageState extends State<TrackingPage> {
                             ],
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.search, color: Colors.white),
+                            icon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurface),
                             onPressed: () {
                               if (_searchController.text.trim().isNotEmpty) {
                                 provider.startTrackingRealOrder(_searchController.text.trim());
@@ -189,14 +189,14 @@ class _TrackingPageState extends State<TrackingPage> {
                             provider.initializeMockOrder();
                             _searchController.clear();
                           },
-                          icon: const Icon(Icons.layers, size: 16, color: Color(0xFF94A3B8)),
-                          label: const Text(
+                          icon: Icon(Icons.layers, size: 16, color: Colors.grey),
+                          label: Text(
                             'Kembali ke Simulasi',
-                            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
                           ),
                         ),
                         if (isMock)
-                          const Text(
+                          Text(
                             'Mode Simulasi Aktif',
                             style: TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
                           )
@@ -229,7 +229,7 @@ class _TrackingPageState extends State<TrackingPage> {
                         SizedBox(height: 16),
                         Text(
                           'Menghubungkan ke Server Deposusu...',
-                          style: TextStyle(color: Color(0xFF94A3B8)),
+                          style: TextStyle(color: Colors.grey),
                         ),
                       ],
                     ),
@@ -241,18 +241,18 @@ class _TrackingPageState extends State<TrackingPage> {
                   padding: const EdgeInsets.all(16),
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF451A03), // Translucent Amber Dark
+                    color: Theme.of(context).cardColor, // Translucent Amber Dark
                     border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.warning_amber_rounded, color: Colors.amber),
+                      Icon(Icons.warning_amber_rounded, color: Colors.amber),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           provider.errorMessage!,
-                          style: const TextStyle(color: Color(0xFFFED7AA), fontSize: 14),
+                          style: TextStyle(color: Colors.amber.shade700, fontSize: 14),
                         ),
                       ),
                     ],
@@ -265,9 +265,9 @@ class _TrackingPageState extends State<TrackingPage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,9 +275,9 @@ class _TrackingPageState extends State<TrackingPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Nomor Pesanan',
-                            style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
                           ),
                           // Premium badge based on current status
                           Container(
@@ -302,9 +302,9 @@ class _TrackingPageState extends State<TrackingPage> {
                       const SizedBox(height: 6),
                       Text(
                         order.orderNumber,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 20,
                         ),
                       ),
@@ -313,25 +313,28 @@ class _TrackingPageState extends State<TrackingPage> {
                 ),
                 const SizedBox(height: 32),
                 
-                const Text(
+                Text(
                   'Status Pengantaran',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 24),
                 
-                // Stepper Timeline
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05)),
                   ),
-                  child: TrackingStepper(currentStatus: order.currentStatus),
+                  child: TrackingStepper(
+                    currentStatus: order.currentStatus,
+                    paymentMethod: order.paymentMethod,
+                    paymentStatus: order.paymentStatus,
+                  ),
                 ),
                 
                 const SizedBox(height: 32),
@@ -342,16 +345,16 @@ class _TrackingPageState extends State<TrackingPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
+                      color: Theme.of(context).scaffoldBackgroundColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                      border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05)),
                     ),
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           'Kamu sedang di Mode Simulasi Offline.\nGunakan tombol di bawah untuk melompat ke status berikutnya.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, height: 1.4),
+                          style: TextStyle(color: Colors.grey, fontSize: 12, height: 1.4),
                         ),
                         const SizedBox(height: 12),
                         SizedBox(
@@ -360,7 +363,7 @@ class _TrackingPageState extends State<TrackingPage> {
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.cyan,
-                              foregroundColor: const Color(0xFF0F172A),
+                              foregroundColor: Theme.of(context).scaffoldBackgroundColor,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -369,8 +372,8 @@ class _TrackingPageState extends State<TrackingPage> {
                             onPressed: () {
                               provider.simulateNextStatus();
                             },
-                            icon: const Icon(Icons.arrow_forward_ios, size: 16),
-                            label: const Text(
+                            icon: Icon(Icons.arrow_forward_ios, size: 16),
+                            label: Text(
                               'Simulasikan Status Selanjutnya',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),

@@ -10,12 +10,16 @@ class OrderTrackingModel {
   final OrderStatus currentStatus;
   final DateTime estimatedDeliveryTime;
   final List<TrackingHistoryItem> history;
+  final String? paymentMethod;
+  final String? paymentStatus;
 
   OrderTrackingModel({
     required this.orderNumber,
     required this.currentStatus,
     required this.estimatedDeliveryTime,
     required this.history,
+    this.paymentMethod,
+    this.paymentStatus,
   });
 }
 

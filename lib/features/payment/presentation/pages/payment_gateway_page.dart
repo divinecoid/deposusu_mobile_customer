@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui';
 
 class PaymentGatewayPage extends StatefulWidget {
   final String paymentMethodCode;
@@ -24,8 +23,10 @@ class PaymentGatewayPage extends StatefulWidget {
   State<PaymentGatewayPage> createState() => _PaymentGatewayPageState();
 }
 
-class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTickerProviderStateMixin {
-  final NumberFormat _currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
+class _PaymentGatewayPageState extends State<PaymentGatewayPage>
+    with SingleTickerProviderStateMixin {
+  final NumberFormat _currencyFormat =
+      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0);
   late AnimationController _glowController;
 
   @override
@@ -54,9 +55,16 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTick
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF0F172A).withValues(alpha: 0.9),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white10),
+              border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -65,12 +73,17 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTick
                 const SizedBox(height: 16),
                 const Text(
                   'Mengirimkan Callback...',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  success ? 'Menghubungkan ke API DepoSusu...' : 'Membatalkan pembayaran...',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  success
+                      ? 'Menghubungkan ke API DepoSusu...'
+                      : 'Membatalkan pembayaran...',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -80,12 +93,13 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTick
       ),
     );
 
-    Future.delayed(const Duration(seconds: 1500 ~/ 1000), () {
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
         Navigator.pop(context); // Pop Gateway page
-        
-        final String generatedOrderId = widget.orderId ?? 'TRX-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+
+        final String generatedOrderId = widget.orderId ??
+            'TRX-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
         if (success) {
           widget.onPaymentSuccess(generatedOrderId);
         } else {
@@ -97,61 +111,33 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTick
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0B0F19), // Ultra-premium deep midnight
-      appBar: AppBar(
-        title: const Text('DepoSusu Secure Gateway', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF0B0F19),
-        elevation: 0,
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white70),
-            onPressed: () {
-              // Simulates user cancel = payment failure
-              _processPayment(false);
-            },
-          ),
-        ],
+    // Force light theme for this page regardless of system theme
+    return Theme(
+      data: ThemeData.light(useMaterial3: true).copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.light,
+        ),
       ),
-      body: Stack(
-        children: [
-          // Background soft glowing light circles
-          Positioned(
-            top: -100,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.blueAccent.withValues(alpha: 0.15),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                child: const SizedBox.shrink(),
-              ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 1,
+          title: const Text(
+            'Pembayaran',
+            style: TextStyle(
+              color: Colors.black87,
+              fontWeight: FontWeight.w700,
+              fontSize: 18,
             ),
           ),
-          Positioned(
-            bottom: -50,
-            right: -50,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.deepPurpleAccent.withValues(alpha: 0.15),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                child: const SizedBox.shrink(),
-              ),
-            ),
-          ),
-
-          Padding(
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: Colors.black87),
+        ),
+        body: SafeArea(
+          child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -162,77 +148,87 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTick
                   animation: _glowController,
                   builder: (context, child) {
                     return Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.blueAccent.withValues(alpha: 0.1),
+                        color: Colors.blue.shade50,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blueAccent.withValues(alpha: 0.1 + (_glowController.value * 0.1)),
+                            color: Colors.blueAccent.withOpacity(
+                                0.1 + (_glowController.value * 0.15)),
                             blurRadius: 20,
-                            spreadRadius: _glowController.value * 10,
+                            spreadRadius: _glowController.value * 8,
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.security, color: Colors.blueAccent, size: 40),
+                      child:
+                          const Icon(Icons.security, color: Colors.blueAccent, size: 40),
                     );
                   },
                 ),
                 const SizedBox(height: 24),
                 const Text(
                   'Selesaikan Pembayaran Anda',
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Gunakan simulasi di bawah untuk menguji keberhasilan pemesanan dan integrasi operasional.',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                Text(
+                  'Gunakan simulasi di bawah untuk menguji keberhasilan\npemesanan dan integrasi operasional.',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 32),
 
-                // Premium Glassmorphic Invoice Card
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                // Invoice Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade100),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
-                      child: Column(
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _buildDetailRow(
+                          'Merchant', 'DepoSusu Store (Official)'),
+                      Divider(color: Colors.grey.shade100, height: 28),
+                      _buildDetailRow(
+                          'Metode Pembayaran', widget.paymentMethodLabel),
+                      Divider(color: Colors.grey.shade100, height: 28),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildDetailRow('Merchant', 'DepoSusu Store (Official)'),
-                          const Divider(color: Colors.white10, height: 24),
-                          _buildDetailRow('Metode Pembayaran', widget.paymentMethodLabel),
-                          const Divider(color: Colors.white10, height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Total Tagihan', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                              Text(
-                                _currencyFormat.format(widget.amount),
-                                style: const TextStyle(
-                                  color: Colors.blueAccent,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ],
+                          Text('Total Tagihan',
+                              style: TextStyle(
+                                  color: Colors.grey.shade600, fontSize: 14)),
+                          Text(
+                            _currencyFormat.format(widget.amount),
+                            style: const TextStyle(
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
-                
+
                 const Spacer(),
 
-                // Action Buttons representing Simulated Callback Triggers
+                // Action Buttons
                 Column(
                   children: [
                     SizedBox(
@@ -243,14 +239,16 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTick
                         icon: const Icon(Icons.check_circle, color: Colors.white),
                         label: const Text(
                           'Simulasi Pembayaran Sukses',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          elevation: 4,
-                          shadowColor: Colors.green.withValues(alpha: 0.4),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
+                          elevation: 2,
+                          shadowColor: Colors.green.withOpacity(0.3),
                         ),
                       ),
                     ),
@@ -263,12 +261,14 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTick
                         icon: const Icon(Icons.error_outline, color: Colors.red),
                         label: const Text(
                           'Simulasi Pembayaran Gagal',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red,
                           side: const BorderSide(color: Colors.red, width: 1.5),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
@@ -279,7 +279,7 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTick
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -288,11 +288,12 @@ class _PaymentGatewayPageState extends State<PaymentGatewayPage> with SingleTick
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+        Text(label,
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black87,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),

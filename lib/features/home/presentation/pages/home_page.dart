@@ -8,21 +8,22 @@ import 'package:intl/intl.dart';
 import '../../../account/presentation/pages/add_address_page.dart';
 import '../../../search/presentation/pages/search_page.dart';
 import '../../../category/presentation/pages/category_page.dart';
+import '../../../cart/presentation/pages/checkout_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   static const List<Map<String, String>> categories = [
+    {'key': 'semua', 'label': 'Semua', 'icon': '🔍'},
     {'key': 'buah', 'label': 'Buah', 'icon': '🍎'},
     {'key': 'protein', 'label': 'Protein', 'icon': '🍗'},
     {'key': 'siap_saji', 'label': 'Siap Saji', 'icon': '🍱'},
-    {'key': 'makanan_ringan', 'label': 'Cemilan', 'icon': '🍪'},
-    {'key': 'sembako', 'label': 'Sembako', 'icon': '🛒'},
-    {'key': 'susu', 'label': 'Susu', 'icon': '🥛'},
+    {'key': 'sayur', 'label': 'Sayur', 'icon': '🥬'},
+    {'key': 'susu', 'label': 'Susu & Dairy', 'icon': '🥛'},
+    {'key': 'frozen_food', 'label': 'Frozen Food', 'icon': '❄️'},
     {'key': 'minuman_ringan', 'label': 'Minuman', 'icon': '🥤'},
-    {'key': 'perawatan_rumah', 'label': 'Rumah', 'icon': '🧼'},
-    {'key': 'bumbu_saus', 'label': 'Bumbu', 'icon': '🧂'},
-    {'key': 'perawatan_diri', 'label': 'Perawatan Diri', 'icon': '🧴'},
+    {'key': 'makanan_ringan', 'label': 'Snack', 'icon': '🍪'},
+    {'key': 'bumbu_saus', 'label': 'Bumbu Dapur', 'icon': '🧂'},
   ];
 
   @override
@@ -274,7 +275,10 @@ class HomePage extends StatelessWidget {
               bottom: 24,
               child: GestureDetector(
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Buka tab Keranjang di bawah.')));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CheckoutPage()),
+                  );
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

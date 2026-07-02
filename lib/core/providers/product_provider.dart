@@ -69,6 +69,7 @@ class ProductProvider with ChangeNotifier {
   List<Product> get allProducts => _products;
 
   List<Product> getProductsByCategory(String category) {
+    if (category == 'semua') return _products;
     return _products.where((p) => p.category == category).toList();
   }
 

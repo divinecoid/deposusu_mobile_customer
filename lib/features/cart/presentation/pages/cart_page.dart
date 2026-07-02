@@ -5,6 +5,7 @@ import '../../../../core/providers/cart_provider.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import 'checkout_page.dart';
+import '../../../main/presentation/pages/main_page.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -88,13 +89,15 @@ class _CartPageState extends State<CartPage> {
         children: [
           Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.grey.shade400),
           const SizedBox(height: 16),
-          const Text('Keranjang Kosong', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          const Text('Mulai belanja dan temukan kebutuhan harianmu.', style: TextStyle(color: Colors.grey)),
+          const Text('Keranjang Anda masih kosong', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Buka halaman Home')));
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const MainPage()),
+                (route) => false,
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).primaryColor,

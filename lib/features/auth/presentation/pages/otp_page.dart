@@ -58,8 +58,9 @@ class _OtpPageState extends State<OtpPage> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -134,6 +135,7 @@ class _OtpPageState extends State<OtpPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
